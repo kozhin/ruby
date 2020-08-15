@@ -1,0 +1,97 @@
+#
+# Variables declaration
+#
+variables:
+  IMAGE_NAME: "docker/ruby/ruby"
+  RUBY_CHECKSUM_SHA256: "d418483bdd0000576c1370571121a6eb24582116db0b7bb2005e90e250eae418"
+  RUBY_VERSION: "2.7.1"
+  RUBY_MAJOR: "2.7"
+
+#
+# CI Stages declaration
+#
+stages:
+  - sync
+  - build
+  - deploy
+  - cleanup
+
+#
+# Sync actions
+#
+Sync repo:
+  stage: sync
+  script:
+    - echo "Sync stage"
+  only:
+    - tags
+
+#
+# Build actions
+#
+Build Ruby:
+  stage: build
+  script:
+    - echo "Building Ruby release v$RUBY_VERSION.."
+    - docker build \
+      --build-arg RUBY_VERSION=$RUBY_VERSION \
+      --build-arg RUBY_MAJOR=$RUBY_MAJOR \
+      --build-arg RUBY_CHECKSUM_SHA256=$RUBY_CHECKSUM_SHA256 \
+      -t $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION .
+    - docker tag $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION $CI_REGISTRY/$IMAGE_NAME:latest
+    - echo "Completed"
+  only:
+    - tags
+
+Build Ruby & NodeJS:
+  stage: build
+  script:
+    - echo "Building Ruby release v.$RUBY_VERSION with NodeJS.."
+    - docker build \
+      --build-arg RUBY_VERSION=$RUBY_VERSION \
+      --build-arg RUBY_MAJOR=$RUBY_MAJOR \
+      --build-arg RUBY_CHECKSUM_SHA256=$RUBY_CHECKSUM_SHA256 \
+      -t $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION-nodejs \
+      -f nodejs.Dockerfile .
+    - docker tag $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION-nodejs $CI_REGISTRY/$IMAGE_NAME:latest-nodejs
+    - echo "Completed"
+  only:
+    - tags
+
+#
+# Deploy actions
+#
+Deploy Ruby:
+  stage: deploy
+  script:
+    - echo "Delivering Ruby images..."
+    - docker push $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION
+    - docker push $CI_REGISTRY/$IMAGE_NAME:latest
+    - echo "Completed"
+  only:
+    - tags
+
+Deploy Ruby & NodeJS:
+  stage: deploy
+  script:
+    - echo "Delivering Ruby & NodeJS images..."
+    - docker push $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION-nodejs
+    - docker push $CI_REGISTRY/$IMAGE_NAME:latest-nodejs
+    - echo "Completed"
+  only:
+    - tags
+
+#
+# Clean up actions
+#
+Clean up:
+  stage: cleanup
+  script:
+    - echo "Cleaning up images..."
+    - docker rmi $CI_REGISTRY/$IMAGE_NAME:latest-nodejs
+    - docker rmi $CI_REGISTRY/$IMAGE_NAME:latest
+    - docker rmi $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION
+    - docker rmi $CI_REGISTRY/$IMAGE_NAME:$RUBY_VERSION-nodejs
+    - echo "Completed"
+  only:
+    - tags
