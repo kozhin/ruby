@@ -5,7 +5,7 @@ FROM alpine:edge
 LABEL Description="This image contains Ruby language" \
       Vendor="CodedRed" \
       Version="1.2.2" \
-      Maintainer="Konstantin Kozhin <https://github.com/kozhin/ruby>"
+      Maintainer="Konstantin Kozhin <https://github.com/kozhin>"
 
 # Don't install gem documentation
 RUN mkdir -p /usr/local/etc \

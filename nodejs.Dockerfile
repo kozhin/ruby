@@ -5,7 +5,7 @@ FROM kozhin/node:latest
 LABEL Description="This image contains Ruby language with NodeJS" \
       Vendor="CodedRed" \
       Version="1.2.1" \
-      Maintainer="Konstantin Kozhin <https://github.com/kozhin/ruby>"
+      Maintainer="Konstantin Kozhin <https://github.com/kozhin>"
 
 # Don't install gem documentation
 RUN mkdir -p /usr/local/etc \
